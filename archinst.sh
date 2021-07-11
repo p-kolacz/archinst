@@ -24,7 +24,7 @@ case $1 in
 		elif $(grep -q AuthenticAMD /proc/cpuinfo); then
 			ucode="amd-ucode"
 		fi
-		pacstrap /mnt base base-devel linux-lts linux-lts-headers linux-firmware $ucode git stow sudo nvim fish man-db terminus-font
+		pacstrap /mnt base base-devel linux-lts linux-lts-headers linux-firmware $ucode git stow sudo neovim fish man-db terminus-font
 		genfstab -U /mnt >> /mnt/etc/fstab
 		read -p "Press any key..."
 		vim /mnt/etc/fstab
