@@ -1,8 +1,9 @@
 #!/bin/bash
 
-USERNAME=piotr
-USERSHELL=/bin/fish
+USER_NAME=piotr
+USER_SHELL=/bin/fish
 DISK_LABEL=ARCH
+TIMEZONE=Europe/Warsaw
 EDITOR=nvim
 
 case $1 in
@@ -12,7 +13,7 @@ case $1 in
 		echo -e "Network is ready\n"
 		timedatectl set-ntp true
 		timedatectl status
-		echo -e "\n1. Use lsblk, gdisk and mkfs.ext4 to partition and format."
+		echo -e "\n1. Use lsblk, gdisk and mkfs.ext4 -L LABEL to partition and format."
 		echo "2. mount /dev/root_partition /mnt"
 		;;
 	install)
@@ -33,7 +34,7 @@ case $1 in
 		;;
 	configure)
 		echo "----- [Time & Locale] -----"
-		ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
+		ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 		hwclock --systohc
 		systemctl enable systemd-timesyncd.service
 		systemctl start systemd-timesyncd.service
@@ -53,15 +54,10 @@ case $1 in
 		echo "----- [Users] -----"
 		echo "Set password for root:"
 		passwd
-		useradd -m -G wheel -s "$USERSHELL" $USERNAME
-		echo "Set password for $USERNAME:"
-		passwd $USERNAME
+		useradd -m -G wheel -s "$USER_SHELL" $USER_NAME
+		echo "Set password for $USER_NAME:"
+		passwd $USER_NAME
 		echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/10_wheel
-
-		# TODO: move elsewere
-		echo "----- [Installing YAY] -----"
-		git clone https://aur.archlinux.org/yay.git /tmp/yay
-		cd /tmp/yay && makepkg -si
 		;;
 	bootloader)
 		echo "----- [Bootloader] -----"
@@ -73,7 +69,9 @@ case $1 in
 		$EDITOR /boot/loader/entries/arch.conf
 		;;
 	exit)
-		exit && umount -R /mnt
+		echo "1. exit"
+		echo "2. umount -R /mnt"
+		echo "3. reboot"
 		;;
 	*)
 		echo "Arch auto installer"
