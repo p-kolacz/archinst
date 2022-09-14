@@ -55,10 +55,10 @@ case $1 in
 		$EDITOR /mnt/etc/fstab
 		cp "$0" /mnt/
 		echo "Installaction complete. Run /$SCRIPT configure"
-		;;
-	configure)
 		echo "Chrooting /mnt ..."
 		arch-chroot /mnt
+		;;
+	configure)
 		echo "----- [Time & Locale] -----"
 		ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 		hwclock --systohc
