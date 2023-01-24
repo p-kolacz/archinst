@@ -5,7 +5,7 @@ ROOT_LABEL=ARCH
 ESP_LABEL=ESP
 TIMEZONE=Europe/Warsaw
 EDITOR=vim
-INITIAL_APPS=(base base-devel linux-lts linux-lts-headers linux-firmware git man-db terminus-font zsh zsh-autosuggestions zsh-syntax-highlighting)
+INITIAL_APPS=(base base-devel linux-lts linux-lts-headers linux-firmware networkmanager git man-db terminus-font zsh zsh-autosuggestions zsh-syntax-highlighting)
 SCRIPT=${0##*/}
 
 if grep -q GenuineIntel /proc/cpuinfo; then
@@ -57,23 +57,34 @@ case $1 in
 		echo "Installaction complete. Run /$SCRIPT configure"
 		echo "Chrooting /mnt ..."
 		arch-chroot /mnt
+		#
+		# Here script will wait for exiting chroot
+		#
+		echo "Unmounting /mnt"
+		umount -R /mnt || { echo "Did you exited chroot?"; exit 2; }
+		wait_any_key "All done! Press any key to reboot..."
+		reboot
 		;;
 	configure)
 		echo "----- [Time & Locale] -----"
 		ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 		hwclock --systohc
 		systemctl enable systemd-timesyncd.service
-		systemctl start systemd-timesyncd.service
+		# systemctl start systemd-timesyncd.service
 		sed -i -e "/#en_US.UTF-8/s/^#//" /etc/locale.gen
 		sed -i -e "/#pl_PL.UTF-8/s/^#//" /etc/locale.gen
 		locale-gen
 		echo "LANG=pl_PL.UTF-8" > /etc/locale.conf
 		echo -e "KEYMAP=pl\nFONT=ter-220b" > /etc/vconsole.conf
 
+		echo "----- [SSD trim] -----"
+		systemctl enable fstrim.timer
+
 		echo "----- [Network] -----"
 		prompt "Enter hostname:" HOST
 		echo "$HOST" > /etc/hostname
 		echo -e "127.0.0.1	localhost\n::1		localhost\n127.0.0.1	$HOST.localdomain $HOST" >> /etc/hosts
+		systemctl enable NetworkManager.service
 
 		echo "----- [Users] -----"
 		echo "Set password for root"
@@ -86,26 +97,18 @@ case $1 in
 
 		prompt "Install bootloader (y/n)?" INSTALL_BL
 		[[ $INSTALL_BL == "y" ]] && {
-			# ;;
-		# bootloader)
 			echo "----- [Bootloader] -----"
 			bootctl install
 			echo -e "timeout 0\ndefault arch" > /boot/loader/loader.conf
 			echo -e "title Arch Linux\nlinux /vmlinuz-linux-lts\ninitrd /$CPU-ucode.img\ninitrd /initramfs-linux-lts.img" > /boot/loader/entries/arch.conf
 			echo -e "options root=\"LABEL=$ROOT_LABEL\" rw modprobe.blacklist=iTCO_wdt nowatchdog" >> /boot/loader/entries/arch.conf
 			wait_any_key
-			$EDITOR /boot/loader/entries/arch.conf
+			# $EDITOR /boot/loader/entries/arch.conf
 		}
-		echo "exit or Ctrl+D and run $SCRIPT finish"
-		;;
-	finish)
-		echo "Unmounting /mnt"
-		umount -R /mnt || { echo "Did you exited chroot?"; exit 2; }
-		wait_any_key "All done! Press any key to reboot..."
-		reboot
+		echo "Configuration complete. Press Ctrl+D to exit chroot."
 		;;
 	*)
 		echo "Arch auto installer"
-		echo "USAGE: $SCRIPT [prepare|install|configure|finish]"
+		echo "USAGE: $SCRIPT [prepare|install|configure]"
 esac
 
