@@ -70,7 +70,6 @@ case $1 in
 		ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 		hwclock --systohc
 		systemctl enable systemd-timesyncd.service
-		# systemctl start systemd-timesyncd.service
 		sed -i -e "/#en_US.UTF-8/s/^#//" /etc/locale.gen
 		sed -i -e "/#pl_PL.UTF-8/s/^#//" /etc/locale.gen
 		locale-gen
@@ -94,6 +93,13 @@ case $1 in
 		echo "Set password for $USER_NAME"
 		passwd "$USER_NAME"
 		echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/10_wheel
+
+		echo "----- [Swap] -----"
+		dd if=/dev/zero of=/swapfile bs=1M count=512 status=progress
+		chmod 0600 /swapfile
+		mkswap -U clear /swapfile
+		swapon /swapfile
+		echo "/swapfile none swap defaults 0 0" >> /etc/fstab
 
 		prompt "Install bootloader (y/n)?" INSTALL_BL
 		[[ $INSTALL_BL == "y" ]] && {
