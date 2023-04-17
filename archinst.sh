@@ -95,7 +95,7 @@ case $1 in
 		echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/10_wheel
 
 		echo "----- [Swap] -----"
-		dd if=/dev/zero of=/swapfile bs=1M count=512 status=progress
+		dd if=/dev/zero of=/swapfile bs=1G count=4 status=progress
 		chmod 0600 /swapfile
 		mkswap -U clear /swapfile
 		swapon /swapfile
