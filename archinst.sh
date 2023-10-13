@@ -46,7 +46,7 @@ case $1 in
 		;;
 	install)
 		mount /dev/disk/by-label/$ROOT_LABEL /mnt
-		mkdir /mnt/boot
+		mkdir -p /mnt/boot
 		mount /dev/disk/by-label/$ESP_LABEL /mnt/boot
 		pacstrap /mnt "${INITIAL_APPS[@]}" "$CPU-ucode"
 		genfstab -U /mnt > /mnt/etc/fstab
