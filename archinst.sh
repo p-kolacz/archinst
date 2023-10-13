@@ -94,12 +94,16 @@ case $1 in
 		passwd "$USER_NAME"
 		echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/10_wheel
 
-		echo "----- [Swap] -----"
-		dd if=/dev/zero of=/swapfile bs=1G count=4 status=progress
-		chmod 0600 /swapfile
-		mkswap -U clear /swapfile
-		swapon /swapfile
-		echo "/swapfile none swap defaults 0 0" >> /etc/fstab
+		prompt "Enable 4GB swap file (y/n)?" ENABLE_SWAP
+		[[ $ENABLE_SWAP == "y" ]] && {
+			echo "----- [Swap] -----"
+			dd if=/dev/zero of=/swapfile bs=1G count=4 status=progress
+			chmod 0600 /swapfile
+			mkswap -U clear /swapfile
+			swapon /swapfile
+			echo "/swapfile none swap defaults 0 0" >> /etc/fstab
+			wait_any_key
+		}
 
 		prompt "Install bootloader (y/n)?" INSTALL_BL
 		[[ $INSTALL_BL == "y" ]] && {
@@ -109,7 +113,6 @@ case $1 in
 			echo -e "title Arch Linux\nlinux /vmlinuz-linux-lts\ninitrd /$CPU-ucode.img\ninitrd /initramfs-linux-lts.img" > /boot/loader/entries/arch.conf
 			echo -e "options root=\"LABEL=$ROOT_LABEL\" rw modprobe.blacklist=iTCO_wdt nowatchdog" >> /boot/loader/entries/arch.conf
 			wait_any_key
-			# $EDITOR /boot/loader/entries/arch.conf
 		}
 		echo "Configuration complete. Press Ctrl+D to exit chroot."
 		;;
