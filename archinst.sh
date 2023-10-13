@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+exec > >(tee archinst.log) 2>&1
 
 USER_SHELL=/usr/bin/zsh
 ROOT_LABEL=ARCH
