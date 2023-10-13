@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 USER_SHELL=/usr/bin/zsh
 ROOT_LABEL=ARCH
@@ -46,9 +47,6 @@ case $1 in
 		mount /dev/disk/by-label/$ROOT_LABEL /mnt
 		mkdir /mnt/boot
 		mount /dev/disk/by-label/$ESP_LABEL /mnt/boot
-		reflector
-		wait_any_key
-		$EDITOR /etc/pacman.d/mirrorlist
 		pacstrap /mnt "${INITIAL_APPS[@]}" "$CPU-ucode"
 		genfstab -U /mnt > /mnt/etc/fstab
 		wait_any_key
